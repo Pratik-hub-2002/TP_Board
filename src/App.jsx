@@ -9,6 +9,7 @@ import AuthScreen from "./screens/AuthScreen/mainPage";
 import AppLoader from "./components/layout/AppLoader";
 import BoardsScreen from "./screens/BoardsScreen";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import PrivateRoute from "./components/utils/PrivateRoute";
 
 const App = () => {
   const { loader, setLoginStatus } = useStore();
@@ -33,7 +34,7 @@ const App = () => {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<PublicOnlyRoute component={ AuthScreen } />} />
-          <Route path="/boards" element={<BoardsScreen></BoardsScreen>}/>
+          <Route path="/boards" element={<PrivateRoute component={ BoardsScreen } />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

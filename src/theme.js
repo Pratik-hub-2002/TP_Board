@@ -1,5 +1,14 @@
 import { createTheme } from '@mui/material';
 
+export const colors = [
+    "#F49D6E",
+    "#E85A4F",
+    "#FFD166",
+    "#8ABEB7",
+    "#247BA0",
+    "#D3D3D3"
+]
+
 
 const theme = createTheme({
     palette: {
@@ -23,6 +32,10 @@ const theme = createTheme({
     typography: {
         fontFamily: "Lato, sans-serif",
         h4: {
+            fontWeight: 700,
+            letterSpacing: "0.5px"
+        },
+        h6: {
             fontWeight: 700,
             letterSpacing: "0.5px"
         },
