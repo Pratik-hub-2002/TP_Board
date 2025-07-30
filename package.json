@@ -1,0 +1,34 @@
+{
+  "name": "sem-iii-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "fb-emulators": "firebase emulators:start --import=./fb-emulators --export-on-exit"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@mui/icons-material": "^5.14.19",
+    "@mui/material": "^5.14.20",
+    "firebase": "^10.7.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.42",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "vite": "^5.0.7"
+  }
+}

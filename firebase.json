@@ -1,0 +1,46 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "emulators": {
+    "ui": {
+      "port": 4405
+    },
+    "auth": {
+      "port": 9155
+    },
+    "firestore": {
+      "port": 8085
+    },
+    "database": {
+      "port": 9005
+    },
+    "hosting": {
+      "port": 5505
+    },
+    "functions": {
+      "port": 5005
+    },
+    "apphosting": {
+      "port": 5015,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
+    "tasks": {
+      "port": 9495
+    },
+    "singleProjectMode": true
+  }
+}
+ 
