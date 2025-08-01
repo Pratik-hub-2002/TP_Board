@@ -3,14 +3,14 @@ import ImageEl from "../../components/utils/Image.El";
 import LogoImg from "../../assets/logo.png";
 import LogoutIcon from "@mui/icons-material/ExitToApp";
 
-const Topbar = () => {
+const Topbar = ({ openModal }) => {
     return (
         <AppBar position="static">
             <Toolbar sx={{ justifyContent: "space-between" }}>
                 <ImageEl sx={{ height: "50px" }} src={LogoImg} alt="TP Board" />
 
                 <Stack direction="row" spacing={2}>
-                    <Button variant="contained">Create Board</Button>
+                    <Button onClick={openModal} variant="contained">Create Board</Button>
                     <Button startIcon={<LogoutIcon />} color="inherit">Logout</Button>
                 </Stack>
             </Toolbar>
