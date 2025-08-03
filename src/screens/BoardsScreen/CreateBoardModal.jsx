@@ -2,12 +2,25 @@ import { useState } from "react";
 import { Dialog, Stack, Typography, Box, TextField, Button } from "@mui/material";
 import ModalHeader from "../../components/layout/ModalHeader";
 import { colors } from "../../theme";
+import useApp from "../../hooks/useApp";
 
 const CreateBoardModal = ({ closeModal }) => {
+    const { createBoard } = useApp();
     const [Name, setName] = useState('');
     const [color, setColor] = useState(colors[0]);
+    const [loading, setLoading] = useState(false);
 
-    console.log(Name, color);
+    const handleCreate = async () => {
+        try {
+            setLoading(true);
+            await createBoard({Name, color});
+            closeModal();
+        } catch (err) {
+            setLoading(false);
+            
+            console.log(err);
+        }
+    }
     
     return (
         <Dialog open onClose={closeModal} fullWidth maxWidth="xs">
@@ -21,7 +34,7 @@ const CreateBoardModal = ({ closeModal }) => {
                         sx={{
                             '& input': {
                                 caretColor: 'transparent'
-                            }
+                            },
                         }}
                     />
                     <Stack direction="row" spacing={1.5}>
@@ -44,7 +57,7 @@ const CreateBoardModal = ({ closeModal }) => {
                             ))}
                         </Stack>
                     </Stack>
-                    <Button size="large" variant="contained">Create</Button>
+                    <Button disabled={loading} onClick={handleCreate} size="large" variant="contained">Create</Button>
                 </Stack>
             </Stack>
         </Dialog>

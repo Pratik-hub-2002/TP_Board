@@ -9,12 +9,12 @@ import { useNavigate } from "react-router-dom";
 const initForm = { email: '', password: '' };
 
 const AuthScreen = () => {
-  const navigate = useNavigate(); // ✅ Move this above useEffect
+  const navigate = useNavigate(); // 
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        navigate('/dashboard');
+        navigate('/boards');
       }
     });
     return () => unsubscribe();

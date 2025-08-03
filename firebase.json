@@ -1,6 +1,52 @@
 {
+  "emulators": {
+    "ui": {
+      "enabled": true,
+      "port": 4405
+    },
+    "auth": {
+      "port": 9155
+    },
+    "firestore": {
+      "port": 8085
+    },
+    "singleProjectMode": true,
+    "apphosting": {
+      "port": 5002,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
+    "functions": {
+      "port": 5001
+    },
+    "database": {
+      "port": 9000
+    },
+    "hosting": {
+      "port": 5000
+    },
+    "pubsub": {
+      "port": 8086
+    },
+    "storage": {
+      "port": 9199
+    },
+    "eventarc": {
+      "port": 9299
+    },
+    "dataconnect": {
+      "port": 9399,
+      "dataDir": "dataconnect/.dataconnect/pgliteData"
+    },
+    "tasks": {
+      "port": 9499
+    }
+  },
+  "dataconnect": {
+    "source": "./dataconnect"
+  },
   "hosting": {
-    "public": "dist",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -12,35 +58,5 @@
         "destination": "/index.html"
       }
     ]
-  },
-  "emulators": {
-    "ui": {
-      "port": 4405
-    },
-    "auth": {
-      "port": 9155
-    },
-    "firestore": {
-      "port": 8085
-    },
-    "database": {
-      "port": 9005
-    },
-    "hosting": {
-      "port": 5505
-    },
-    "functions": {
-      "port": 5005
-    },
-    "apphosting": {
-      "port": 5015,
-      "rootDirectory": "./",
-      "startCommand": "npm run dev"
-    },
-    "tasks": {
-      "port": 9495
-    },
-    "singleProjectMode": true
   }
 }
- 
