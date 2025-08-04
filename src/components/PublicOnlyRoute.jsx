@@ -1,14 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import useStore from '../store';
 
-const PublicOnlyRoute = ({ component: Component }) => {
+const PublicOnlyRoute = ({ children }) => {
   const { isLoggedIn } = useStore();
 
   if (isLoggedIn) {
     return <Navigate to="/boards" replace />;
   }
 
-  return <Component />;
+  return children;
 };
 
 export default PublicOnlyRoute;

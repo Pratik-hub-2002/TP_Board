@@ -5,14 +5,14 @@
       "port": 4405
     },
     "auth": {
-      "port": 9155
+      "port": 9156
     },
     "firestore": {
-      "port": 8085
+      "port": 8086
     },
     "singleProjectMode": true,
     "apphosting": {
-      "port": 5002,
+      "port": 5003,
       "rootDirectory": "./",
       "startCommand": "npm run dev"
     },
@@ -20,26 +20,23 @@
       "port": 5001
     },
     "database": {
-      "port": 9000
+      "port": 9001
     },
     "hosting": {
-      "port": 5000
-    },
-    "pubsub": {
-      "port": 8086
+      "port": 5004
     },
     "storage": {
-      "port": 9199
+      "port": 9200
     },
     "eventarc": {
-      "port": 9299
+      "port": 9300
     },
     "dataconnect": {
-      "port": 9399,
+      "port": 9400,
       "dataDir": "dataconnect/.dataconnect/pgliteData"
     },
     "tasks": {
-      "port": 9499
+      "port": 9500
     }
   },
   "dataconnect": {
@@ -58,5 +55,14 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-south1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

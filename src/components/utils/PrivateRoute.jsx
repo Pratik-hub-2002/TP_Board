@@ -1,10 +1,9 @@
 import { Navigate } from "react-router-dom";
-import useStore from "../../store"; // ✅ Corrected import
+import useStore from "../../store";
 
-const PrivateRoute = ({ component: Component }) => {
+const PrivateRoute = ({ children }) => {
   const { isLoggedIn } = useStore();
-
-  return isLoggedIn ? <Component /> : <Navigate to="/" replace />;
+  return isLoggedIn ? children : <Navigate to="/" replace />;
 };
 
 export default PrivateRoute;

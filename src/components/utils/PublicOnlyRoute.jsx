@@ -1,9 +1,9 @@
-import { Navigate } from "react-router-dom" 
-import { useStore } from "../../store";
+import { Navigate } from "react-router-dom";
+import useStore from "../../store";
 
-const PublicOnlyRoute = ({ Component }) => {
-    const { isLoggedIn } = useStore();
-  return isLoggedIn ? <Navigate to="boards" replace  /> : <Component />
-}
+const PublicOnlyRoute = ({ children }) => {
+  const { isLoggedIn } = useStore();
+  return isLoggedIn ? <Navigate to="/boards" replace /> : children;
+};
 
-export default PublicOnlyRoute
+export default PublicOnlyRoute;

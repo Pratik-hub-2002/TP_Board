@@ -1,7 +1,7 @@
 import { Container, Stack, TextField, Button, Typography, CircularProgress, Alert } from "@mui/material";
 import LogoImg from '../../assets/logo.png';
 import ImageEl from "../../components/utils/Image.El.jsx";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { auth } from "../../firebase";
 import { login, register } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 const initForm = { email: '', password: '' };
 
 const AuthScreen = () => {
-  const navigate = useNavigate(); // 
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -18,7 +18,7 @@ const AuthScreen = () => {
       }
     });
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, auth]);
 
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState(initForm);
@@ -27,7 +27,7 @@ const AuthScreen = () => {
 
   const authText = isLogin ? "Don't have an account?" : "Already have an account?";
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors = {};
     if (!form.email) newErrors.email = 'Email is required';
     if (!form.password) newErrors.password = 'Password is required';
@@ -39,13 +39,13 @@ const AuthScreen = () => {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [form]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm(prevForm => ({ ...prevForm, [name]: value }));
     if (errors[name]) {
-      setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
+      setErrors(prevErrors => ({ ...prevErrors, [name]: '', submit: '' }));
     }
   };
 
@@ -62,14 +62,13 @@ const AuthScreen = () => {
       } else {
         await register(form.email, form.password);
       }
+      // Clear all errors on successful submission
+      setErrors({});
     } catch (error) {
       console.error('Authentication error:', error);
       let errorMessage = error.message || 'Authentication failed. Please try again.';
 
-      // If the error comes from our auth service, use its message directly
-      // Otherwise, handle Firebase error codes
       if (!error.code) {
-        // This is likely an error from our auth service with a custom message
         errorMessage = error.message;
       } else {
         switch (error.code) {
@@ -197,10 +196,10 @@ const AuthScreen = () => {
           {isLoading ? <CircularProgress size={24} sx={{ position: 'absolute' }} /> : (isLogin ? "Login" : "Register")}
         </Button>
       </Stack>
-      <Typography
-        variant="body2"
+      <Button
+        variant="text"
+        onClick={() => setIsLogin(prev => !prev)}
         sx={{
-          cursor: "pointer",
           mt: 3,
           textAlign: "center",
           color: "primary.main",
@@ -208,10 +207,11 @@ const AuthScreen = () => {
             textDecoration: "underline"
           }
         }}
-        onClick={() => setIsLogin(prev => !prev)}
       >
-        {authText}
-      </Typography>
+        <Typography variant="body2">
+          {authText}
+        </Typography>
+      </Button>
     </Container>
   );
 };
