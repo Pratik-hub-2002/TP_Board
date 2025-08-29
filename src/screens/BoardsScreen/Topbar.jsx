@@ -2,8 +2,17 @@ import { AppBar, Toolbar, Button, Stack } from "@mui/material";
 import ImageEl from "../../components/utils/Image.El";
 import LogoImg from "../../assets/logo.png";
 import LogoutIcon from "@mui/icons-material/ExitToApp";
+import { logout } from "../../services/auth";
 
 const Topbar = ({ openModal }) => {
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Logout failed:', error);
+        }
+    };
+
     return (
         <AppBar position="static">
             <Toolbar sx={{ justifyContent: "space-between" }}>
@@ -11,7 +20,7 @@ const Topbar = ({ openModal }) => {
 
                 <Stack direction="row" spacing={2}>
                     <Button onClick={openModal} variant="contained">Create Board</Button>
-                    <Button startIcon={<LogoutIcon />} color="inherit">Logout</Button>
+                    <Button startIcon={<LogoutIcon />} color="inherit" onClick={handleLogout}>Logout</Button>
                 </Stack>
             </Toolbar>
         </AppBar>

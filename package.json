@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "fb-emulators": "firebase emulators:start --import=./fb-emulators --export-on-exit"
+    "emulators": "firebase emulators:start --import=./emulator-data --export-on-exit --project=tp-board-6331b",
+    "dev:emulators": "concurrently \"npm run emulators\" \"npm run dev\""
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -26,6 +27,7 @@
     "@types/react": "^18.2.42",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^9.2.1",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",

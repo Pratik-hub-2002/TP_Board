@@ -3,7 +3,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  AuthErrorCodes
+  updateProfile
 } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -11,18 +11,33 @@ import { auth } from '../firebase';
 export const register = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Update user profile with default display name
+    await updateProfile(userCredential.user, {
+      displayName: email.split('@')[0] // Use the part before @ as display name
+    });
+
     return userCredential.user;
   } catch (error) {
+    console.error('Registration error:', error);
+    
+    // Handle specific error cases
     switch (error.code) {
-      case AuthErrorCodes.EMAIL_EXISTS:
-        throw new Error('Email already in use');
-      case AuthErrorCodes.WEAK_PASSWORD:
-        throw new Error('Password should be at least 6 characters');
-      case AuthErrorCodes.INVALID_EMAIL:
-        throw new Error('Invalid email format');
-      default:
-        throw new Error(error.message);
+      case 'auth/email-already-in-use':
+        error.message = 'This email is already registered.';
+        break;
+      case 'auth/invalid-email':
+        error.message = 'Please enter a valid email address.';
+        break;
+      case 'auth/weak-password':
+        error.message = 'Password should be at least 6 characters.';
+        break;
+      case 'auth/network-request-failed':
+        error.message = 'Network error. Please check your internet connection.';
+        break;
     }
+    
+    throw error;
   }
 };
 
@@ -31,51 +46,40 @@ export const login = async (email, password) => {
   try {
     console.log("🔑 Attempting to log in...");
     console.log("Email:", email);
-    console.log("Auth instance:", auth);
-    console.log("Firebase config loaded:", !!auth.app.options.apiKey);
     
-    // Validate inputs
+    // Validate and trim inputs
     if (!email || !password) {
       throw new Error('Email and password are required');
     }
     
-    // Trim whitespace
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
     
-    console.log("Attempting Firebase signIn...");
     const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
     console.log("✅ Login successful", userCredential.user.uid);
     return userCredential.user;
   } catch (error) {
-    console.error("❌ Authentication error:", {
-      code: error.code,
-      message: error.message,
-      email: email
-    });
+    console.error("❌ Authentication error:", error);
     
+    // Handle specific error cases
     switch (error.code) {
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
       case 'auth/user-not-found':
-        throw new Error('Invalid email or password. Please check your credentials and try again.');
-      case 'auth/invalid-email':
-        throw new Error('Invalid email format');
-      case 'auth/user-disabled':
-        throw new Error('This account has been disabled');
+        error.message = 'Invalid email or password. Please check your credentials and try again.';
+        break;
       case 'auth/too-many-requests':
-        throw new Error('Too many failed attempts. Please try again later');
+        error.message = 'Too many failed login attempts. Please try again later.';
+        break;
       case 'auth/network-request-failed':
-        throw new Error('Network error. Please check your internet connection');
-      case AuthErrorCodes.USER_DELETED:
-        throw new Error('User not found');
-      case AuthErrorCodes.INVALID_PASSWORD:
-        throw new Error('Invalid password');
-      case AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER:
-        throw new Error('Too many attempts. Please try again later');
-      default:
-        throw new Error(`Authentication failed: ${error.message}`);
+        error.message = 'Network error. Please check your internet connection.';
+        break;
+      case 'auth/user-disabled':
+        error.message = 'This account has been disabled.';
+        break;
     }
+    
+    throw error;
   }
 };
 
@@ -83,8 +87,10 @@ export const login = async (email, password) => {
 export const logout = async () => {
   try {
     await signOut(auth);
+    console.log("👋 User signed out");
   } catch (error) {
-    throw new Error(error.message);
+    console.error("❌ Logout error:", error);
+    throw error;
   }
 };
 
@@ -92,7 +98,23 @@ export const logout = async () => {
 export const resetPassword = async (email) => {
   try {
     await sendPasswordResetEmail(auth, email);
+    console.log("📧 Password reset email sent");
   } catch (error) {
-    throw new Error(error.message);
+    console.error("❌ Password reset error:", error);
+    
+    // Handle specific error cases
+    switch (error.code) {
+      case 'auth/user-not-found':
+        error.message = 'No account found with this email address.';
+        break;
+      case 'auth/invalid-email':
+        error.message = 'Please enter a valid email address.';
+        break;
+      case 'auth/network-request-failed':
+        error.message = 'Network error. Please check your internet connection.';
+        break;
+    }
+    
+    throw error;
   }
 };

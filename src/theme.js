@@ -60,6 +60,14 @@ const theme = createTheme({
                 }
             }
         },
+        MuiSnackbarContent: {
+            styleOverrides: {
+                message: {
+                    fontWeight: 600,
+                    textTransform: "capitalize"
+                }
+            }
+        },
         MuiTextField: {
             styleOverrides: {
                 root: {

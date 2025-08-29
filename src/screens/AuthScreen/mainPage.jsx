@@ -5,11 +5,13 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { auth } from "../../firebase";
 import { login, register } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
+import useStore from "../../store";
 
 const initForm = { email: '', password: '' };
 
 const AuthScreen = () => {
   const navigate = useNavigate();
+  const { setToastrMsg } = useStore();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -24,7 +26,6 @@ const AuthScreen = () => {
   const [form, setForm] = useState(initForm);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
   const authText = isLogin ? "Don't have an account?" : "Already have an account?";
 
   const validateForm = useCallback(() => {
@@ -51,61 +52,69 @@ const AuthScreen = () => {
 
   const handleSubmit = useCallback(async (e) => {
     e?.preventDefault();
-    if (!validateForm()) return;
+    
+    // Clear previous errors
+    setErrors({});
+    
+    // Client-side validation
+    if (!form.email.trim()) {
+      setErrors(prev => ({ ...prev, email: 'Email is required' }));
+      return;
+    }
+    
+    if (!form.password.trim()) {
+      setErrors(prev => ({ ...prev, password: 'Password is required' }));
+      return;
+    }
+    
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setErrors(prev => ({ ...prev, email: 'Please enter a valid email address' }));
+      return;
+    }
+    
+    // Password length validation
+    if (form.password.length < 6) {
+      setErrors(prev => ({ ...prev, password: 'Password must be at least 6 characters' }));
+      return;
+    }
 
     try {
       setIsLoading(true);
-      setErrors({});
-
+      
       if (isLogin) {
         await login(form.email, form.password);
       } else {
         await register(form.email, form.password);
       }
-      // Clear all errors on successful submission
+      
+      // Reset form on successful authentication
+      setForm(initForm);
       setErrors({});
+      
     } catch (error) {
       console.error('Authentication error:', error);
+      
+      // Handle specific error cases
       let errorMessage = error.message || 'Authentication failed. Please try again.';
-
-      if (!error.code) {
-        errorMessage = error.message;
-      } else {
-        switch (error.code) {
-          case 'auth/invalid-credential':
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
-            errorMessage = 'Invalid email or password. Please check your credentials and try again.';
-            break;
-          case 'auth/email-already-in-use':
-            errorMessage = 'This email is already registered.';
-            break;
-          case 'auth/weak-password':
-            errorMessage = 'Password should be at least 6 characters.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Please enter a valid email address.';
-            break;
-          case 'auth/network-request-failed':
-            errorMessage = 'Network error. Please check your connection.';
-            break;
-          case 'auth/too-many-requests':
-            errorMessage = 'Too many attempts. Please try again later.';
-            break;
-          default:
-            errorMessage = error.message || errorMessage;
-            break;
-        }
-      }
-
+      
+      // Update the error state
       setErrors(prev => ({
         ...prev,
-        submit: errorMessage
+        submit: errorMessage,
+        // Add field-specific errors if available
+        ...(error.field === 'email' && { email: errorMessage }),
+        ...(error.field === 'password' && { password: errorMessage })
       }));
+      
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
     } finally {
       setIsLoading(false);
     }
-  }, [form, validateForm, isLogin]);
+  }, [form, isLogin]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

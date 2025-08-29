@@ -6,18 +6,17 @@ import useApp from "../../hooks/useApp";
 
 const CreateBoardModal = ({ closeModal }) => {
     const { createBoard } = useApp();
-    const [Name, setName] = useState('');
+    const [name, setName] = useState('');
     const [color, setColor] = useState(colors[0]);
     const [loading, setLoading] = useState(false);
 
     const handleCreate = async () => {
         try {
             setLoading(true);
-            await createBoard({Name, color});
+            await createBoard({name, color});
             closeModal();
         } catch (err) {
             setLoading(false);
-            
             console.log(err);
         }
     }
@@ -29,7 +28,7 @@ const CreateBoardModal = ({ closeModal }) => {
                 <Stack my={5} spacing={3}>
                     <TextField 
                         label="Board Name" 
-                        value={Name} 
+                        value={name} 
                         onChange={(e) => setName(e.target.value)}
                         sx={{
                             '& input': {
