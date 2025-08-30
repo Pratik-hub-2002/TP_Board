@@ -11,14 +11,20 @@
     "dev:emulators": "concurrently \"npm run emulators\" \"npm run dev\""
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@firebase/auth": "^1.11.0",
+    "@firebase/firestore": "^4.9.1",
+    "@firebase/functions": "^0.13.1",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.14.20",
-    "firebase": "^10.7.1",
+    "firebase": "^11.10.0",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.1",
     "zustand": "^5.0.6"

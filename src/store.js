@@ -13,6 +13,9 @@ const store = (set) => ({
   setLoginStatus: (status) => set({
     isLoggedIn: status,
     loader: false,
+    boards: [],
+    areBoardsFetched: false,
+    
   }, false, "setLoginStatus"),
 });
 

@@ -3,11 +3,13 @@ import ImageEl from "../../components/utils/Image.El";
 import LogoImg from "../../assets/logo.png";
 import LogoutIcon from "@mui/icons-material/ExitToApp";
 import { logout } from "../../services/auth";
+import { auth } from "../../firebase";
+import { signOut } from "firebase/auth";
 
 const Topbar = ({ openModal }) => {
     const handleLogout = async () => {
         try {
-            await logout();
+            await signOut(auth);
         } catch (error) {
             console.error('Logout failed:', error);
         }
@@ -20,7 +22,7 @@ const Topbar = ({ openModal }) => {
 
                 <Stack direction="row" spacing={2}>
                     <Button onClick={openModal} variant="contained">Create Board</Button>
-                    <Button startIcon={<LogoutIcon />} color="inherit" onClick={handleLogout}>Logout</Button>
+                    <Button onClick={() => signOut(auth)} startIcon={<LogoutIcon />} color="inherit">Logout</Button>
                 </Stack>
             </Toolbar>
         </AppBar>

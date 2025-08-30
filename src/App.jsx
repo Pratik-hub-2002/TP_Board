@@ -5,13 +5,18 @@ import { useEffect } from "react";
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import useStore from "./store";
-
-import AuthScreen from "./screens/AuthScreen/mainPage";
 import AppLoader from "./components/layout/AppLoader";
+
+//Screen
+import AuthScreen from "./screens/AuthScreen/mainPage";
 import BoardsScreen from "./screens/BoardsScreen";
+import BoardScreen from "./screens/BoardScreen";
+
+//
 import PublicOnlyRoute from "./components/utils/PublicOnlyRoute";
 import PrivateRoute from "./components/utils/PrivateRoute";
 import SnackbarManager from "./components/layout/SnackbarManager";
+
 
 const App = () => {
   const { loader, setLoginStatus } = useStore();
@@ -45,6 +50,12 @@ const App = () => {
               <PrivateRoute>
                 <BoardsScreen />
               </PrivateRoute>
+            }
+          />
+          <Route
+            path="/boards/:boardId"
+            element={
+              <PrivateRoute component={BoardScreen} />
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
