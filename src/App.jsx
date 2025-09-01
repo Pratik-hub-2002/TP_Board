@@ -55,7 +55,9 @@ const App = () => {
           <Route
             path="/boards/:boardId"
             element={
-              <PrivateRoute component={BoardScreen} />
+              <PrivateRoute>
+                <BoardScreen />
+              </PrivateRoute>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

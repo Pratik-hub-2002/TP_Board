@@ -11,7 +11,7 @@ exports.onBoardCreated = onDocumentCreated("users/{uid}/boards/{boardId}", async
     try {
         const { uid, boardId } = event.params;
         const firestore = getFirestore();
-        return await firestore.doc(`users/${uid}/boardsData`).doc(boardId).set({
+        return await firestore.doc(`users/${uid}/boardsData/${boardId}`).set({
             tabs: {
                 todo: [],
                 inProgress: [],
@@ -21,7 +21,7 @@ exports.onBoardCreated = onDocumentCreated("users/{uid}/boards/{boardId}", async
             lastUpdated: FieldValue.serverTimestamp(),
             createdBy: uid,
             createdAt: FieldValue.serverTimestamp()
-        };
+        });
     } catch (error) {
         logger.error('❌ Error in onBoardCreated function:', error);
         // Re-throw the error to mark the function as failed
