@@ -4,7 +4,8 @@ import AddIcon from '@mui/icons-material/AddCircle'
 const BoardInterface = () => {
   return (
     <>
-      <Grid container spacing={2}>
+    <AddTaskModal />
+      <Grid container spacing={5}>
         <Grid item xs={12} md={6} lg={4}>
           <Stack spacing={2} bgcolor="#000" p={2}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
