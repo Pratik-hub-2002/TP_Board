@@ -1,4 +1,4 @@
-/*import { createTheme } from '@mui/material';
+import { createTheme } from '@mui/material';
 
 export const colors = [
   "#4F6D7A",  // soft blue-gray
@@ -112,8 +112,8 @@ const theme = createTheme({
   }
 });
 
-export default theme;*/
-import { createTheme } from '@mui/material';
+export default theme;
+/*import { createTheme } from '@mui/material';
 
 export const colors = [
   "#4F6D7A",  // soft blue-gray
@@ -227,5 +227,5 @@ const darkTheme = createTheme({
   }
 });
 
-export default darkTheme;
+export default darkTheme;*/
 

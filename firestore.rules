@@ -14,20 +14,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read/write their own data
-    match /users/{userId} {
-      // Allow read/write if user is authenticated and accessing their own data
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
-      // Explicitly define rules for boards subcollection
-      match /boards/{boardId} {
-        allow read, write: if request.auth.uid == userId;
-      }
-      
-      // Explicitly define rules for boardsData subcollection
-      match /boardsData/{boardId} {
-        allow read, write: if request.auth.uid == userId;
-      }
+    // Development rules - allow all access
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
