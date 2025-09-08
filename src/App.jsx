@@ -53,7 +53,7 @@ const App = () => {
             }
           />
           <Route
-            path="/boards/:boardId"
+            path="/board/:boardId"
             element={
               <PrivateRoute>
                 <BoardScreen />

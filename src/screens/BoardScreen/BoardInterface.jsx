@@ -6,14 +6,20 @@ import { useState, useEffect } from 'react';
 import { db } from '../../firebase';
 import { doc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
-const BoardInterface = () => {
+const BoardInterface = ({ boardId }) => {
   const [tabs, setTabs] = useState({});
   const [tasks, setTasks] = useState({});
   const [loading, setLoading] = useState(true);
   
   // Load data from Firestore on component mount
   useEffect(() => {
-    const boardRef = doc(db, 'boards', 'main-board');
+    if (!boardId) {
+      console.error('No board ID provided to BoardInterface');
+      setLoading(false);
+      return;
+    }
+    
+    const boardRef = doc(db, 'boards', boardId);
     
     // Subscribe to real-time updates
     const unsubscribe = onSnapshot(boardRef, (doc) => {
@@ -39,11 +45,11 @@ const BoardInterface = () => {
     });
     
     return () => unsubscribe();
-  }, []);
+  }, [boardId]); // Re-run when boardId changes
   
   // Update Firestore when state changes
   const updateFirestore = async (updates) => {
-    const boardRef = doc(db, 'boards', 'main-board');
+    const boardRef = doc(db, 'boards', boardId);
     try {
       await updateDoc(boardRef, updates);
     } catch (error) {

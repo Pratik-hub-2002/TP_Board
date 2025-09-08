@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Dialog, Stack, Typography, Box, TextField, Button } from "@mui/material";
+import { getAuth } from "firebase/auth";
+import { serverTimestamp } from "firebase/firestore";
 import ModalHeader from "../../components/layout/ModalHeader";
 import { colors } from "../../theme";
 import useApp from "../../hooks/useApp";
@@ -7,17 +9,37 @@ import useApp from "../../hooks/useApp";
 const CreateBoardModal = ({ closeModal }) => {
     const { createBoard } = useApp();
     const [name, setName] = useState('');
-    const [color, setColor] = useState(colors[0]);
+    const [color, setColor] = useState(0); // Default to first color
     const [loading, setLoading] = useState(false);
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
 
     const handleCreate = async () => {
+        if (!name.trim()) return;
+        
         try {
             setLoading(true);
-            await createBoard({name, color});
+            // Create the board with proper structure
+            await createBoard({
+                name: name.trim(),
+                color: color,
+                createdAt: serverTimestamp(),
+                createdBy: currentUser.uid,
+                members: [currentUser.uid],
+                tabs: {
+                    todos: { name: "Todos", color: "primary" },
+                    inProgress: { name: "In Progress", color: "secondary" },
+                    done: { name: "Completed", color: "success" },
+                    backlogs: { name: "Backlogs", color: "warning" }
+                },
+                tasks: {}
+            });
             closeModal();
         } catch (err) {
+            console.error('Error creating board:', err);
+            // Handle error (e.g., show error message to user)
+        } finally {
             setLoading(false);
-            console.log(err);
         }
     }
     
