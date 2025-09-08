@@ -22,10 +22,15 @@ const db = getFirestore(app);
 
 // Connect to emulators in development
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  connectAuthEmulator(auth, "http://localhost:9099");
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  console.log("🔌 Connected to Firebase Emulators");
-  console.log("🔄 Using Development Environment");
+  try {
+    connectAuthEmulator(auth, "http://127.0.0.1:19099");
+    connectFirestoreEmulator(db, '127.0.0.1', 18080);
+    console.log("🔌 Connected to Firebase Emulators");
+    console.log("🔄 Using Development Environment");
+    console.log("📊 Emulator UI: http://localhost:14000");
+  } catch (error) {
+    console.error("❌ Failed to connect to emulators:", error);
+  }
 } else {
   console.log("🚀 Connected to Firebase Production Services");
   console.log("✅ Using Production Environment");
