@@ -23,13 +23,18 @@ const db = getFirestore(app);
 // Connect to emulators in development
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   try {
-    connectAuthEmulator(auth, "http://127.0.0.1:19099");
-    connectFirestoreEmulator(db, '127.0.0.1', 18080);
+    // Only connect if not already connected
+    if (!auth._delegate._config.emulator) {
+      connectAuthEmulator(auth, "http://127.0.0.1:9099");
+    }
+    if (!db._delegate._databaseId.projectId.includes('demo-')) {
+      connectFirestoreEmulator(db, '127.0.0.1', 8080);
+    }
     console.log("🔌 Connected to Firebase Emulators");
     console.log("🔄 Using Development Environment");
-    console.log("📊 Emulator UI: http://localhost:14000");
+    console.log("📊 Emulator UI: http://localhost:4000");
   } catch (error) {
-    console.error("❌ Failed to connect to emulators:", error);
+    console.warn("⚠️ Emulator connection warning (may already be connected):", error.message);
   }
 } else {
   console.log("🚀 Connected to Firebase Production Services");

@@ -23,6 +23,7 @@ const App = () => {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
+      console.log("🔄 Auth state changed:", user ? "logged in" : "logged out");
       setLoginStatus(!!user);
     });
     return () => unsub();

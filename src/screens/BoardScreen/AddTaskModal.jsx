@@ -1,19 +1,28 @@
-import { Dialog, Typography, Stack, IconButton, Chip, OutlinedInput, Button } from '@mui/material';
+import { Dialog, Typography, Stack, IconButton, Chip, OutlinedInput, Button, TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useState } from 'react';
 
 const AddTaskModal = ({ addTaskTo, open, onClose, onSave }) => {
   const [task, setTask] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [priority, setPriority] = useState('medium');
 
   const handleClose = () => {
     setTask('');
+    setDeadline('');
+    setPriority('medium');
     onClose();
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (task.trim()) {
-      onSave(task);
+      const taskData = {
+        text: task.trim(),
+        deadline: deadline || null,
+        priority: priority
+      };
+      onSave(taskData);
       handleClose();
     }
   };
@@ -46,6 +55,32 @@ const AddTaskModal = ({ addTaskTo, open, onClose, onSave }) => {
             sx={{ mt: 2 }}
             autoFocus
           />
+          
+          <TextField
+            label="Deadline"
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            fullWidth
+            InputLabelProps={{
+              shrink: true,
+            }}
+            helperText="Optional: Set a deadline for this task"
+          />
+          
+          <FormControl fullWidth>
+            <InputLabel>Priority</InputLabel>
+            <Select
+              value={priority}
+              label="Priority"
+              onChange={(e) => setPriority(e.target.value)}
+            >
+              <MenuItem value="low">Low</MenuItem>
+              <MenuItem value="medium">Medium</MenuItem>
+              <MenuItem value="high">High</MenuItem>
+              <MenuItem value="urgent">Urgent</MenuItem>
+            </Select>
+          </FormControl>
           
           <Button 
             type="submit"
