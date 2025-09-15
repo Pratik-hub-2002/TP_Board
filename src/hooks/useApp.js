@@ -7,12 +7,19 @@ const useApp = () => {
     const auth = getAuth();
     const currentUser = auth.currentUser;
     
+    console.log(' useApp hook called');
+    console.log(' Current user:', currentUser);
+    console.log(' User UID:', currentUser?.uid);
+    
     if (!currentUser) {
+        console.error(' No authenticated user found in useApp hook');
         throw new Error('User must be authenticated to use this hook');
     }
     
     const boardsColRef = collection(db, `users/${currentUser.uid}/boards`);
     const { setBoards,addBoard } = useStore();
+    
+    console.log(' Firestore path:', `users/${currentUser.uid}/boards`);
 
     const createBoard = async ({ name, color }) => {
         try {
@@ -40,17 +47,43 @@ const useApp = () => {
 
     const fetchBoards = async ( setLoading ) => {
         try {
+            console.log('📊 Fetching boards from:', `users/${currentUser.uid}/boards`);
             const q = query(boardsColRef, orderBy('createdAt', 'desc'));
-           const querySnapshot = await getDocs(q);
-           const boards = querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt.toDate().toLocaleDateString()
-           }));
-           setBoards(boards);
+            const querySnapshot = await getDocs(q);
+            
+            console.log('📊 Query snapshot size:', querySnapshot.size);
+            console.log('📊 Query snapshot empty:', querySnapshot.empty);
+            
+            const boards = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                console.log('📄 Document data:', doc.id, data);
+                
+                // Handle different createdAt formats
+                let createdAtFormatted;
+                if (data.createdAt) {
+                    if (typeof data.createdAt === 'string') {
+                        createdAtFormatted = data.createdAt;
+                    } else if (data.createdAt.toDate) {
+                        createdAtFormatted = data.createdAt.toDate().toLocaleDateString();
+                    } else {
+                        createdAtFormatted = new Date(data.createdAt).toLocaleDateString();
+                    }
+                } else {
+                    createdAtFormatted = 'N/A';
+                }
+                
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: createdAtFormatted
+                };
+            });
+            
+            console.log('📊 Processed boards:', boards);
+            setBoards(boards);
         } catch (err) {
-            console.log(err);
-        }finally{
+            console.error('❌ Error fetching boards:', err);
+        } finally {
             if(setLoading) setLoading(false);
         }
     }

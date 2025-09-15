@@ -15,29 +15,38 @@ const CreateBoardModal = ({ closeModal }) => {
     const currentUser = auth.currentUser;
 
     const handleCreate = async () => {
-        if (!name.trim()) return;
+        if (!name.trim() || loading) return;
         
         try {
             setLoading(true);
+            console.log('🎯 Creating new board:', name.trim());
+            
             // Create the board with proper structure
-            await createBoard({
+            const boardData = {
                 name: name.trim(),
                 color: color,
-                createdAt: serverTimestamp(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
                 createdBy: currentUser.uid,
                 members: [currentUser.uid],
                 tabs: {
-                    todos: { name: "Todos", color: "primary" },
-                    inProgress: { name: "In Progress", color: "secondary" },
-                    done: { name: "Completed", color: "success" },
-                    backlogs: { name: "Backlogs", color: "warning" }
+                    'todo': { id: 'todo', name: "To Do", color: "primary" },
+                    'inprogress': { id: 'inprogress', name: "In Progress", color: "warning" },
+                    'done': { id: 'done', name: "Done", color: "success" }
                 },
-                tasks: {}
-            });
+                tasks: {
+                    'todo': [],
+                    'inprogress': [],
+                    'done': []
+                }
+            };
+            
+            await createBoard(boardData);
+            console.log('✅ Board created successfully');
             closeModal();
         } catch (err) {
-            console.error('Error creating board:', err);
-            // Handle error (e.g., show error message to user)
+            console.error('❌ Error creating board:', err);
+            alert('Failed to create board. Please try again.');
         } finally {
             setLoading(false);
         }

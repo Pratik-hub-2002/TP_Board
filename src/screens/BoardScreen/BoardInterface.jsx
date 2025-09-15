@@ -10,10 +10,11 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import useDeadlineNotifications from '../../hooks/useDeadlineNotifications';
 import NotificationPanel from '../../components/layout/NotificationPanel';
 
-const BoardInterface = ({ boardId }) => {
+const BoardInterface = ({ boardId, boardName }) => {
   const [tabs, setTabs] = useState({});
   const [tasks, setTasks] = useState({});
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   
   // Deadline notifications
   const { notifications, clearNotification, clearAllNotifications } = useDeadlineNotifications(tasks);
@@ -29,15 +30,16 @@ const BoardInterface = ({ boardId }) => {
     const auth = getAuth();
     
     // Wait for auth state to be ready
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
         console.error('User not authenticated in BoardInterface');
         setLoading(false);
         return;
       }
       
-      console.log('BoardInterface: Auth ready, user:', currentUser.uid);
-      const boardRef = doc(db, `users/${currentUser.uid}/boards`, boardId);
+      console.log('BoardInterface: Auth ready, user:', user.uid);
+      setCurrentUser(user);
+      const boardRef = doc(db, `users/${user.uid}/boards`, boardId);
       
       // Subscribe to real-time updates
       const unsubscribeSnapshot = onSnapshot(boardRef, async (docSnapshot) => {
@@ -59,7 +61,7 @@ const BoardInterface = ({ boardId }) => {
           };
           
           await setDoc(boardRef, {
-            name: 'New Board',
+            name: boardName || 'New Board',
             tabs: defaultTabs,
             tasks: defaultTasks,
             members: {}, // Initialize empty members object for collaboration
@@ -103,14 +105,21 @@ const BoardInterface = ({ boardId }) => {
     
     if (!currentUser) {
       console.error('User not authenticated');
-      return;
+      return false;
     }
     
     const boardRef = doc(db, `users/${currentUser.uid}/boards`, boardId);
     try {
-      await updateDoc(boardRef, updates);
+      console.log('🔄 Updating Firestore with:', updates);
+      await updateDoc(boardRef, {
+        ...updates,
+        updatedAt: new Date().toISOString()
+      });
+      console.log('✅ Firestore updated successfully');
+      return true;
     } catch (error) {
-      console.error("Error updating Firestore:", error);
+      console.error("❌ Error updating Firestore:", error);
+      return false;
     }
   };
   const [addTaskTo, setAddTaskTo] = useState('');
@@ -173,73 +182,153 @@ const BoardInterface = ({ boardId }) => {
   };
 
   const handleAddTask = async (taskData) => {
-    if ((typeof taskData === 'string' ? taskData.trim() : taskData.text?.trim()) && addTaskTo) {
+    try {
+      console.log('➕ Adding new task:', taskData);
+      
+      if (!(typeof taskData === 'string' ? taskData.trim() : taskData.text?.trim()) || !addTaskTo) {
+        console.log('Invalid task data or no list selected');
+        return;
+      }
+
       const newTask = {
         id: `task-${Date.now()}`,
         text: typeof taskData === 'string' ? taskData : taskData.text,
         status: addTaskTo,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         deadline: typeof taskData === 'object' ? taskData.deadline : null,
-        priority: typeof taskData === 'object' ? taskData.priority : 'medium'
+        priority: typeof taskData === 'object' ? taskData.priority || 'medium' : 'medium'
       };
       
-      try {
-        const updatedTasks = {
-          ...tasks,
-          [addTaskTo]: [...(tasks[addTaskTo] || []), newTask]
-        };
-        
-        // Update local state first for immediate UI feedback
-        setTasks(updatedTasks);
-        
-        // Update Firestore
-        await updateFirestore({
-          [`tasks.${addTaskTo}`]: updatedTasks[addTaskTo]
-        });
-        
-        console.log('Task added successfully:', newTask.text);
-      } catch (error) {
-        console.error('Error adding task:', error);
-        // Revert local state on error
-        setTasks(tasks);
-      } finally {
-        setAddTaskTo('');
+      const listId = addTaskTo;
+      const originalTasks = { ...tasks };
+      
+      // Optimistic update
+      const updatedTasks = {
+        ...tasks,
+        [listId]: [...(tasks[listId] || []), newTask]
+      };
+      
+      setTasks(updatedTasks);
+      setAddTaskTo('');
+      
+      // Update Firestore
+      const success = await updateFirestore({
+        [`tasks.${listId}`]: updatedTasks[listId] || []
+      });
+      
+      if (!success) {
+        // Rollback on failure
+        console.log('🔄 Rolling back task addition');
+        setTasks(originalTasks);
+        setAddTaskTo(listId);
+        alert('Failed to add task. Please try again.');
+      } else {
+        console.log('✅ Task added successfully to database');
       }
+    } catch (error) {
+      console.error("❌ Error adding task:", error);
+      alert('Error adding task. Please try again.');
     }
   };
 
   const handleEditTask = async (listId, updatedTask) => {
     try {
+      console.log('✏️ Editing task:', updatedTask.id, 'in list:', listId);
+      
+      const originalTasks = { ...tasks };
+      
       const updatedTasks = {
         ...tasks,
         [listId]: (tasks[listId] || []).map(task => 
-          task.id === updatedTask.id ? { ...task, ...updatedTask } : task
+          task.id === updatedTask.id ? { ...task, ...updatedTask, updatedAt: new Date().toISOString() } : task
         )
       };
+      
       setTasks(updatedTasks);
-      await updateFirestore({
+      
+      const success = await updateFirestore({
         [`tasks.${listId}`]: updatedTasks[listId] || []
       });
+      
+      if (!success) {
+        console.log('🔄 Rolling back task edit');
+        setTasks(originalTasks);
+        alert('Failed to update task. Please try again.');
+      } else {
+        console.log('✅ Task updated successfully in database');
+      }
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("❌ Error editing task:", error);
+      alert('Error updating task. Please try again.');
     }
   };
 
   const handleDeleteTask = async (listId, taskId) => {
     try {
-      console.log('Deleting task:', taskId, 'from list:', listId);
+      console.log('🗑️ Deleting task:', taskId, 'from list:', listId);
+      
+      // Store original state for rollback
+      const originalTasks = { ...tasks };
+      
+      // Optimistic update
       const updatedTasks = {
         ...tasks,
         [listId]: (tasks[listId] || []).filter(task => task.id !== taskId)
       };
-      console.log('Updated tasks after deletion:', updatedTasks[listId]);
+      
+      console.log('📝 Updated tasks after deletion:', updatedTasks[listId]);
       setTasks(updatedTasks);
-      await updateFirestore({
+      
+      // Update Firestore
+      const success = await updateFirestore({
         [`tasks.${listId}`]: updatedTasks[listId] || []
       });
-      console.log('Task deleted successfully');
+      
+      if (!success) {
+        // Rollback on failure
+        console.log('🔄 Rolling back task deletion');
+        setTasks(originalTasks);
+        alert('Failed to delete task. Please try again.');
+      } else {
+        console.log('✅ Task deleted successfully from database');
+      }
     } catch (error) {
-      console.error("Error deleting task:", error);
+      console.error("❌ Error deleting task:", error);
+      // Rollback on error
+      setTasks(tasks);
+      alert('Error deleting task. Please try again.');
+    }
+  };
+
+  const handleEditList = async (listId, updates) => {
+    try {
+      console.log('✏️ Editing list:', listId, updates);
+      
+      const originalTabs = { ...tabs };
+      
+      const updatedTabs = {
+        ...tabs,
+        [listId]: { ...tabs[listId], ...updates, updatedAt: new Date().toISOString() }
+      };
+      
+      setTabs(updatedTabs);
+      
+      const success = await updateFirestore({
+        [`tabs.${listId}`]: updatedTabs[listId]
+      });
+      
+      if (!success) {
+        console.log('🔄 Rolling back list edit');
+        setTabs(originalTabs);
+        alert('Failed to update list. Please try again.');
+      } else {
+        console.log('✅ List updated successfully in database');
+      }
+    } catch (error) {
+      console.error("❌ Error updating list:", error);
+      setTabs(tabs);
+      alert('Error updating list. Please try again.');
     }
   };
 
@@ -343,6 +432,17 @@ const BoardInterface = ({ boardId }) => {
 
   return (
     <>
+      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" component="h1">
+          {boardName || 'Board'}
+          {currentUser && (
+            <Typography variant="subtitle1" color="text.secondary">
+              Welcome, {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}!
+            </Typography>
+          )}
+        </Typography>
+      </Box>
+      
       {!!addTaskTo && tabs[addTaskTo] && (
         <AddTaskModal 
           open={!!addTaskTo} 
@@ -362,11 +462,12 @@ const BoardInterface = ({ boardId }) => {
                       key={tab.id}
                       name={tab.name}
                       color={tab.color}
-                      onAddTask={handleAddTask}
+                      onAddTask={() => handleOpenAddTask(tab.id)}
                       tasks={tasks[tab.id] || []}
                       onEditTask={handleEditTask}
                       onDeleteTask={handleDeleteTask}
                       onDeleteList={handleDeleteList}
+                      onEditList={handleEditList}
                       listId={tab.id}
                       isDragOver={snapshot.isDraggingOver}
                       boardId={boardId}

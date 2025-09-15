@@ -1,0 +1,170 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===== HELPER FUNCTIONS =====
+    
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the resource
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Check if user is board member
+    function isBoardMember(boardData) {
+      return request.auth.token.email in boardData.members;
+    }
+    
+    // Check if user has specific role in board
+    function hasRole(boardData, role) {
+      return isBoardMember(boardData) && 
+             boardData.members[request.auth.token.email].role == role;
+    }
+    
+    // Check if user has permission for action
+    function hasPermission(boardData, permission) {
+      let userRole = boardData.members[request.auth.token.email].role;
+      
+      // Owner has all permissions
+      if (userRole == 'owner') return true;
+      
+      // Admin permissions
+      if (userRole == 'admin') {
+        return permission in [
+          'canViewBoard', 'canCreateTasks', 'canEditTasks', 'canDeleteTasks',
+          'canCreateLists', 'canEditLists', 'canDeleteLists', 'canInviteMembers',
+          'canEditBoardSettings'
+        ];
+      }
+      
+      // Member permissions
+      if (userRole == 'member') {
+        return permission in [
+          'canViewBoard', 'canCreateTasks', 'canEditTasks', 'canCreateLists'
+        ];
+      }
+      
+      // Viewer permissions
+      if (userRole == 'viewer') {
+        return permission == 'canViewBoard';
+      }
+      
+      return false;
+    }
+    
+    // Validate task data
+    function isValidTaskData(taskData) {
+      return taskData.keys().hasAll(['text', 'listId', 'priority', 'createdAt']) &&
+             taskData.text is string &&
+             taskData.text.size() > 0 &&
+             taskData.text.size() <= 500 &&
+             taskData.priority in ['low', 'medium', 'high', 'urgent'];
+    }
+    
+    // Validate list data
+    function isValidListData(listData) {
+      return listData.keys().hasAll(['name', 'color', 'position']) &&
+             listData.name is string &&
+             listData.name.size() > 0 &&
+             listData.name.size() <= 100;
+    }
+    
+    // ===== USER RULES =====
+    
+    // User profile access
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && isOwner(userId);
+      
+      // User boards subcollection
+      match /boards/{boardId} {
+        allow read: if isAuthenticated() && 
+                   (isOwner(userId) || 
+                    isBoardMember(resource.data) || 
+                    resource.data.isPublic == true);
+        
+        allow create: if isAuthenticated() && isOwner(userId) &&
+                     request.resource.data.owner == request.auth.uid &&
+                     request.resource.data.ownerEmail == request.auth.token.email;
+        
+        allow update: if isAuthenticated() && 
+                     (isOwner(userId) || 
+                      hasPermission(resource.data, 'canEditBoardSettings'));
+        
+        allow delete: if isAuthenticated() && 
+                     (isOwner(userId) || 
+                      hasRole(resource.data, 'owner'));
+      }
+      
+      // User notifications subcollection
+      match /notifications/{notificationId} {
+        allow read, write: if isAuthenticated() && isOwner(userId);
+        allow create: if isAuthenticated(); // Allow system to create notifications
+      }
+    }
+    
+    // ===== BOARD DATA VALIDATION =====
+    
+    // Validate board updates
+    match /users/{userId}/boards/{boardId} {
+      // Task operations
+      allow update: if isAuthenticated() && 
+                   request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['tasks', 'updatedAt', 'lastActivity']) &&
+                   hasPermission(resource.data, 'canEditTasks');
+      
+      // List operations  
+      allow update: if isAuthenticated() && 
+                   request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['lists', 'updatedAt', 'lastActivity']) &&
+                   hasPermission(resource.data, 'canEditLists');
+      
+      // Member operations
+      allow update: if isAuthenticated() && 
+                   request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(['members', 'updatedAt']) &&
+                   hasPermission(resource.data, 'canInviteMembers');
+    }
+    
+    // ===== SHARED BOARDS =====
+    
+    // Public boards collection for discovery
+    match /publicBoards/{boardId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() && 
+                           request.resource.data.owner == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.owner == request.auth.uid;
+    }
+    
+    // ===== SYSTEM COLLECTIONS =====
+    
+    // Board templates (read-only for users)
+    match /boardTemplates/{templateId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin SDK can write
+    }
+    
+    // System notifications
+    match /systemNotifications/{notificationId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin SDK can write
+    }
+    
+    // Analytics data (read-only for users)
+    match /analytics/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin SDK can write
+    }
+    
+    // ===== RATE LIMITING & SECURITY =====
+    
+    // Prevent excessive writes
+    match /{document=**} {
+      allow write: if request.time > resource.data.lastWrite + duration.value(1, 's');
+    }
+  }
+}

@@ -93,13 +93,15 @@ const BoardScreen = () => {
   // Always render the interface if we have a user and boardId
   if (user && boardId) {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <BoardTopbar 
+          boardName={board?.name} 
+          boardId={boardId} 
           board={board || { id: boardId, name: 'New Board', color: 'primary' }} 
           onBoardUpdate={handleBoardUpdate}
         />
-        <Box component="main" sx={{ flexGrow: 1, p: 2, mt: 8, overflow: 'auto' }}>
-          <BoardInterface boardId={boardId} />
+        <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+          <BoardInterface boardId={boardId} boardName={board?.name} />
         </Box>
       </Box>
     );

@@ -150,6 +150,31 @@ const AuthScreen = () => {
           >
             TP Board
           </Typography>
+          <Typography
+            variant="h5"
+            sx={{
+              color: 'secondary.main',
+              fontWeight: '600',
+              mt: 2,
+              textAlign: 'center',
+              background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              animation: 'fadeInUp 0.8s ease-out',
+              '@keyframes fadeInUp': {
+                '0%': {
+                  opacity: 0,
+                  transform: 'translateY(30px)'
+                },
+                '100%': {
+                  opacity: 1,
+                  transform: 'translateY(0)'
+                }
+              }
+            }}
+          >
+            {isLogin ? 'Login Page' : 'New Register Page'}
+          </Typography>
         </Stack>
         <Typography color="rgba(255,255,255, .6)" variant="subtitle1" sx={{ opacity: 0.8, fontWeight: 'light', maxWidth: '600px' }}>
           Task & Performance Management System

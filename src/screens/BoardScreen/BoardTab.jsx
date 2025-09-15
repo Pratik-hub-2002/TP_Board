@@ -11,18 +11,21 @@ import { Draggable } from '@hello-pangea/dnd';
 import { formatDistanceToNow, isPast, isWithinInterval, subDays } from 'date-fns';
 import TaskCommentModal from '../../components/layout/TaskCommentModal';
 
-const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, onDeleteTask, onDeleteList, listId, isDragOver, boardId }) => {
+const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, onDeleteTask, onDeleteList, onEditList, listId, isDragOver, boardId }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [listMenuEl, setListMenuEl] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
   const [editedText, setEditedText] = useState('');
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-  
+  const [editingListName, setEditingListName] = useState(false);
+  const [editedListName, setEditedListName] = useState(name);
+
   const handleListMenuClick = (event) => {
     event.stopPropagation();
     setListMenuEl(event.currentTarget);
   };
+
   
   const handleListMenuClose = () => {
     setListMenuEl(null);
@@ -33,6 +36,24 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
       onDeleteList(listId);
     }
     handleListMenuClose();
+  };
+
+  const handleEditListName = () => {
+    setEditingListName(true);
+    setEditedListName(name);
+    handleListMenuClose();
+  };
+
+  const handleSaveListName = () => {
+    if (editedListName.trim() && editedListName !== name) {
+      onEditList(listId, { name: editedListName.trim() });
+    }
+    setEditingListName(false);
+  };
+
+  const handleCancelEditListName = () => {
+    setEditingListName(false);
+    setEditedListName(name);
   };
 
   const handleMenuClick = (event, task) => {
@@ -149,13 +170,47 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-          <Typography 
-            variant="h6" 
-            color={`${color}.main`}
-            sx={{ fontWeight: 'bold', flexGrow: 1 }}
-          >
-            {name}
-          </Typography>
+          {editingListName ? (
+            <input
+              type="text"
+              value={editedListName}
+              onChange={(e) => setEditedListName(e.target.value)}
+              onBlur={handleSaveListName}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSaveListName();
+                } else if (e.key === 'Escape') {
+                  handleCancelEditListName();
+                }
+              }}
+              autoFocus
+              style={{
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                padding: '4px 8px',
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                fontFamily: 'inherit',
+                color: 'inherit',
+                backgroundColor: 'transparent',
+                flexGrow: 1,
+              }}
+            />
+          ) : (
+            <Typography 
+              variant="h6" 
+              color={`${color}.main`}
+              sx={{ 
+                fontWeight: 'bold', 
+                flexGrow: 1,
+                cursor: 'pointer',
+                '&:hover': { opacity: 0.8 }
+              }}
+              onClick={handleEditListName}
+            >
+              {name}
+            </Typography>
+          )}
           <IconButton 
             size="small" 
             onClick={handleListMenuClick}
@@ -363,6 +418,9 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
           horizontal: 'right',
         }}
       >
+        <MenuItem onClick={handleEditListName}>
+          <EditIcon fontSize="small" sx={{ mr: 1 }} /> Edit List Name
+        </MenuItem>
         <MenuItem onClick={handleDeleteList}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete List
         </MenuItem>
