@@ -1,0 +1,221 @@
+import { Container, Stack, TextField, Button, Typography, CircularProgress, Alert, Box, Paper, useTheme } from "@mui/material";
+import LogoImg from '../../assets/logo.png';
+import ImageEl from "../../components/utils/Image.El.jsx";
+import { useState, useCallback, useEffect } from "react";
+import { auth } from "../../firebase";
+import { login, register } from "../../services/auth";
+import { useNavigate } from "react-router-dom";
+import useStore from "../../store";
+import { motion } from "framer-motion";
+
+const initForm = { email: '', password: '' };
+
+const AuthScreen = () => {
+  const navigate = useNavigate();
+  const { setToastrMsg } = useStore();
+  const theme = useTheme();
+  
+  const [isLogin, setIsLogin] = useState(true);
+  const [form, setForm] = useState(initForm);
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const authText = isLogin ? "Don't have an account?" : "Already have an account?";
+
+  // Handle authentication state changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigate('/boards');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // Form validation
+  const validateForm = useCallback(() => {
+    const newErrors = {};
+    if (!form.email) newErrors.email = 'Email is required';
+    if (!form.password) newErrors.password = 'Password is required';
+    if (form.email && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)) {
+      newErrors.email = 'Invalid email address';
+    }
+    if (form.password && form.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [form]);
+
+  // Handle input changes
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setForm(prevForm => ({ ...prevForm, [name]: value }));
+    if (errors[name]) {
+      setErrors(prevErrors => ({ ...prevErrors, [name]: '', submit: '' }));
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = useCallback(async (e) => {
+    e?.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    try {
+      setIsLoading(true);
+      
+      if (isLogin) {
+        await login(form.email, form.password);
+      } else {
+        await register(form.email, form.password);
+      }
+      
+      setForm(initForm);
+      setErrors({});
+      
+    } catch (error) {
+      console.error('Authentication error:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error.message || 'Authentication failed. Please try again.'
+      }));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [form, isLogin, validateForm]);
+
+  // Toggle between login and signup
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setForm(initForm);
+    setErrors({});
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.palette.background.default,
+        p: 2
+      }}
+    >
+      <Container maxWidth="sm" component="main">
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 3, sm: 4 },
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+            boxShadow: theme.shadows[3],
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Stack spacing={4} alignItems="center" sx={{ textAlign: 'center' }}>
+              {/* Logo */}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                <ImageEl 
+                  src={LogoImg} 
+                  alt="TP Board" 
+                  style={{
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    border: `3px solid ${theme.palette.divider}`,
+                    boxShadow: theme.shadows[2]
+                  }}
+                />
+              </motion.div>
+
+              {/* Title */}
+              <Typography variant="h4" component="h1" color="primary">
+                {isLogin ? 'Welcome Back' : 'Create Account'}
+              </Typography>
+
+              {/* Error message */}
+              {errors.submit && (
+                <Alert severity="error" sx={{ width: '100%' }}>
+                  {errors.submit}
+                </Alert>
+              )}
+
+              {/* Auth Form */}
+              <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%', mt: 2 }}>
+                <Stack spacing={3}>
+                  <TextField
+                    name="email"
+                    label="Email Address"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    fullWidth
+                    disabled={isLoading}
+                  />
+
+                  <TextField
+                    name="password"
+                    label="Password"
+                    type="password"
+                    value={form.password}
+                    onChange={handleChange}
+                    error={!!errors.password}
+                    helperText={errors.password}
+                    fullWidth
+                    disabled={isLoading}
+                  />
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    disabled={isLoading}
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  >
+                    {isLoading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : isLogin ? (
+                      'Sign In'
+                    ) : (
+                      'Sign Up'
+                    )}
+                  </Button>
+                </Stack>
+              </Box>
+
+              {/* Toggle auth mode */}
+              <Button
+                onClick={toggleAuthMode}
+                color="primary"
+                size="small"
+                sx={{ mt: 2, textTransform: 'none' }}
+                disabled={isLoading}
+              >
+                {authText}{' '}
+                <Box component="span" sx={{ color: 'primary.main', fontWeight: 600, ml: 0.5 }}>
+                  {isLogin ? 'Sign Up' : 'Sign In'}
+                </Box>
+              </Button>
+            </Stack>
+          </motion.div>
+        </Paper>
+      </Container>
+    </Box>
+  );
+};
+
+export default AuthScreen;
