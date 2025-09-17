@@ -11,17 +11,10 @@ const useApp = () => {
     console.log(' Current user:', currentUser);
     console.log(' User UID:', currentUser?.uid);
     
-    if (!currentUser) {
-        console.error(' No authenticated user found in useApp hook');
-        throw new Error('User must be authenticated to use this hook');
-    }
-    
-    const boardsColRef = collection(db, `users/${currentUser.uid}/boards`);
     const { setBoards,addBoard } = useStore();
-    
-    console.log(' Firestore path:', `users/${currentUser.uid}/boards`);
-
     const createBoard = async ({ name, color }) => {
+        if (!currentUser) return;
+        const boardsColRef = collection(db, `users/${currentUser.uid}/boards`);
         try {
             const docRef = await addDoc(boardsColRef, { 
                 name, 
@@ -46,6 +39,8 @@ const useApp = () => {
     } 
 
     const fetchBoards = async ( setLoading ) => {
+        if (!currentUser) return;
+        const boardsColRef = collection(db, `users/${currentUser.uid}/boards`);
         try {
             console.log('📊 Fetching boards from:', `users/${currentUser.uid}/boards`);
             const q = query(boardsColRef, orderBy('createdAt', 'desc'));

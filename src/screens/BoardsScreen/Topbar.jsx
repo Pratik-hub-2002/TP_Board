@@ -1,6 +1,6 @@
 import { AppBar, Toolbar, Button, Stack, Typography, Box } from "@mui/material";
 import ImageEl from "../../components/utils/Image.El";
-import LogoImg from "../../assets/logo.png";
+import LogoImg from "../../assets/1.png";
 import LogoutIcon from "@mui/icons-material/ExitToApp";
 import { auth } from "../../firebase";
 import { signOut } from "firebase/auth";
@@ -28,7 +28,9 @@ const Topbar = ({ openModal }) => {
     return (
         <AppBar position="static">
             <Toolbar sx={{ justifyContent: "space-between" }}>
-                <ImageEl sx={{ height: "50px" }} src={LogoImg} alt="TP Board" />
+                <Typography variant="h6" sx={{ mr: 1 }}>
+                Task & Performance Management Board
+                </Typography>
 
                 <Stack direction="row" spacing={2} alignItems="center">
                     {currentUser && (

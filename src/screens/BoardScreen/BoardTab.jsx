@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Paper, Typography, Box, IconButton, Card, CardContent, Menu, MenuItem, Tooltip, Chip, Alert, Checkbox } from '@mui/material';
+import { Paper, Typography, Box, IconButton, Card, CardContent, Menu, MenuItem, Tooltip, Chip, Alert, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
@@ -20,6 +20,8 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
   const [selectedTask, setSelectedTask] = useState(null);
   const [editingListName, setEditingListName] = useState(false);
   const [editedListName, setEditedListName] = useState(name);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null); // { type: 'list' | 'task', data: {} }
 
   const handleListMenuClick = (event) => {
     event.stopPropagation();
@@ -31,11 +33,28 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
     setListMenuEl(null);
   };
   
-  const handleDeleteList = () => {
-    if (window.confirm(`Are you sure you want to delete the list "${name}"?`)) {
-      onDeleteList(listId);
-    }
+  const handleOpenConfirmDialog = (type, data) => {
+    setItemToDelete({ type, data });
+    setConfirmDialogOpen(true);
     handleListMenuClose();
+    handleMenuClose();
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setConfirmDialogOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return;
+
+    if (itemToDelete.type === 'list') {
+      onDeleteList(itemToDelete.data.id);
+    } else if (itemToDelete.type === 'task') {
+      onDeleteTask(listId, itemToDelete.data.id);
+    }
+
+    handleCloseConfirmDialog();
   };
 
   const handleEditListName = () => {
@@ -77,15 +96,6 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
     handleMenuClose();
   };
 
-  const handleDelete = () => {
-    if (editingTask) {
-      if (window.confirm('Are you sure you want to delete this task?')) {
-        console.log('BoardTab: Calling onDeleteTask with:', listId, editingTask.id);
-        onDeleteTask(listId, editingTask.id);
-      }
-    }
-    handleMenuClose();
-  };
 
   const handleToggleComplete = (task) => {
     const updatedTask = {
@@ -399,7 +409,7 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
           <CommentIcon fontSize="small" sx={{ mr: 1 }} /> 
           Comments {editingTask?.comments?.length > 0 && `(${editingTask.comments.length})`}
         </MenuItem>
-        <MenuItem onClick={handleDelete}>
+        <MenuItem onClick={() => handleOpenConfirmDialog('task', editingTask)}>
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete
         </MenuItem>
       </Menu>
@@ -418,14 +428,11 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
           horizontal: 'right',
         }}
       >
-        <MenuItem onClick={handleEditListName}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} /> Edit List Name
-        </MenuItem>
-        <MenuItem onClick={handleDeleteList}>
+            <MenuItem onClick={() => handleOpenConfirmDialog('list', { id: listId, name })}>
+
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete List
         </MenuItem>
       </Menu>
-
       {/* Task Comment Modal */}
       <TaskCommentModal
         open={commentModalOpen}
@@ -435,6 +442,26 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
         listId={listId}
         onTaskUpdate={handleTaskUpdate}
       />
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialogOpen}
+        onClose={handleCloseConfirmDialog}
+      >
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete "{itemToDelete?.data?.name || itemToDelete?.data?.text}"?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog}>Cancel</Button>
+          <Button onClick={handleConfirmDelete} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Paper>
   );
 };

@@ -1,5 +1,5 @@
 import { Container, Stack, TextField, Button, Typography, CircularProgress, Alert, Box, Paper, useTheme } from "@mui/material";
-import LogoImg from '../../assets/logo.png';
+import LogoImg from '../../assets/2.png';
 import ImageEl from "../../components/utils/Image.El.jsx";
 import { useState, useCallback, useEffect } from "react";
 import { auth } from "../../firebase";
@@ -206,7 +206,7 @@ const AuthScreen = () => {
 
               {/* App Title */}
               <Typography
-                variant="h4"
+                variant="h6"
                 sx={{
                   color: 'primary.main',
                   fontWeight: 'bold',
@@ -226,7 +226,7 @@ const AuthScreen = () => {
                   }
                 }}
               >
-                TP Board
+                Task & Performance Management Board
               </Typography>
 
               {/* Welcome Message */}
@@ -236,7 +236,7 @@ const AuthScreen = () => {
                 transition={{ delay: 0.4 }}
               >
                 <Typography
-                  variant="h4"
+                  variant="h5"
                   sx={{
                     fontWeight: 'bold',
                     mt: 2,

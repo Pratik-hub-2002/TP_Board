@@ -276,7 +276,8 @@ let theme = createTheme({
     },
     text: {
       primary: "#1E293B",   // near-black for readability
-      secondary: "#475569"  // muted gray for less important text
+      secondary: "#475569",  // muted gray for less important text
+      tertiary: "#000000"   // near-black for readability
     }
   },
   typography: {

@@ -47,7 +47,7 @@ const BoardInterface = ({ boardId, boardName }) => {
           const boardData = docSnapshot.data();
           setTabs(boardData.tabs || {});
           setTasks(boardData.tasks || {});
-        } else {
+        } else if (currentUser) { // Only create if a user is authenticated
           // Create default board structure if it doesn't exist
           const defaultTabs = {
             'todo': { id: 'todo', name: 'To Do', color: 'primary' },
@@ -432,15 +432,14 @@ const BoardInterface = ({ boardId, boardName }) => {
 
   return (
     <>
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" component="h1">
-          {boardName || 'Board'}
+      <Box sx={{ p: 2, visibility: 'hidden', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px'}}>
+        <Box>
           {currentUser && (
-            <Typography variant="subtitle1" color="text.secondary">
-              Welcome, {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}!
+            <Typography variant="subtitle1" color="text.tertiary">
+              Hey, {currentUser.displayName || currentUser.email?.split('@')[0] || 'User'}
             </Typography>
           )}
-        </Typography>
+        </Box>
       </Box>
       
       {!!addTaskTo && tabs[addTaskTo] && (
