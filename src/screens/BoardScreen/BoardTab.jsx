@@ -12,9 +12,10 @@ import { formatDistanceToNow, isPast, isWithinInterval, subDays } from 'date-fns
 import TaskCommentModal from '../../components/layout/TaskCommentModal';
 
 const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, onDeleteTask, onDeleteList, onEditList, listId, isDragOver, boardId }) => {
-  const [anchorEl, setAnchorEl] = useState(null);
   const [listMenuEl, setListMenuEl] = useState(null);
-  const [editingTask, setEditingTask] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [activeTask, setActiveTask] = useState(null); // Task for the open menu
+  const [editingTask, setEditingTask] = useState(null); // Task being edited
   const [editedText, setEditedText] = useState('');
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -77,21 +78,19 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
 
   const handleMenuClick = (event, task) => {
     event.stopPropagation();
-    event.preventDefault();
-    setAnchorEl(event.currentTarget);
-    setEditingTask(task);
-    setEditedText(task.text);
+    setMenuAnchorEl(event.currentTarget);
+    setActiveTask(task);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
-    setEditingTask(null);
+    setMenuAnchorEl(null);
+    // Keep activeTask set so menu items can use it until the menu is closed
   };
 
   const handleEdit = () => {
-    if (editingTask && editedText.trim()) {
-      console.log('BoardTab: Calling onEditTask with:', listId, { ...editingTask, text: editedText });
-      onEditTask(listId, { ...editingTask, text: editedText });
+    if (activeTask && editedText.trim()) {
+      console.log('BoardTab: Calling onEditTask with:', listId, { ...activeTask, text: editedText });
+      onEditTask(listId, { ...activeTask, text: editedText });
     }
     handleMenuClose();
   };
@@ -118,7 +117,7 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
 
   // Handle click outside when editing
   const handleClickOutsideEdit = (e) => {
-    if (editingTask && !e.target.closest('.task-edit-input')) {
+    if (activeTask && !e.target.closest('.task-edit-input')) {
       handleEdit();
     }
   };
@@ -340,12 +339,9 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
                       <IconButton 
                         size="small" 
                         sx={{ p: 0.5, ml: 1 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMenuClick(e, task);
-                        }}
+                        onClick={() => handleOpenConfirmDialog('task', task)}
                       >
-                        <MoreVertIcon fontSize="small" />
+                        <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Box>
                     
@@ -385,34 +381,6 @@ const BoardTab = ({ name, color = 'primary', onAddTask, tasks = [], onEditTask, 
           </Box>
         )}
       </Box>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-      >
-        <MenuItem onClick={() => {
-          setEditingTask(editingTask);
-          setEditedText(editingTask?.text || '');
-          handleMenuClose();
-        }}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} /> Edit
-        </MenuItem>
-        <MenuItem onClick={() => handleOpenComments(editingTask)}>
-          <CommentIcon fontSize="small" sx={{ mr: 1 }} /> 
-          Comments {editingTask?.comments?.length > 0 && `(${editingTask.comments.length})`}
-        </MenuItem>
-        <MenuItem onClick={() => handleOpenConfirmDialog('task', editingTask)}>
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Delete
-        </MenuItem>
-      </Menu>
       
       {/* List Actions Menu */}
       <Menu

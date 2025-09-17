@@ -265,39 +265,31 @@ const BoardInterface = ({ boardId, boardName }) => {
   };
 
   const handleDeleteTask = async (listId, taskId) => {
+    const originalTasks = { ...tasks };
+    const newTasksForList = (tasks[listId] || []).filter(task => task.id !== taskId);
+
+    // Optimistic UI update
+    const updatedTasks = {
+      ...tasks,
+      [listId]: newTasksForList
+    };
+    setTasks(updatedTasks);
+
     try {
-      console.log('🗑️ Deleting task:', taskId, 'from list:', listId);
-      
-      // Store original state for rollback
-      const originalTasks = { ...tasks };
-      
-      // Optimistic update
-      const updatedTasks = {
-        ...tasks,
-        [listId]: (tasks[listId] || []).filter(task => task.id !== taskId)
-      };
-      
-      console.log('📝 Updated tasks after deletion:', updatedTasks[listId]);
-      setTasks(updatedTasks);
-      
       // Update Firestore
-      const success = await updateFirestore({
-        [`tasks.${listId}`]: updatedTasks[listId] || []
-      });
-      
-      if (!success) {
-        // Rollback on failure
-        console.log('🔄 Rolling back task deletion');
-        setTasks(originalTasks);
-        alert('Failed to delete task. Please try again.');
-      } else {
+      const success = await updateFirestore({ [`tasks.${listId}`]: newTasksForList });
+
+      if (success) {
         console.log('✅ Task deleted successfully from database');
+      } else {
+        console.error('❌ Failed to delete task from Firestore, rolling back UI.');
+        setTasks(originalTasks); // Rollback
+        alert('Failed to delete task. Please check your connection and try again.');
       }
     } catch (error) {
-      console.error("❌ Error deleting task:", error);
-      // Rollback on error
-      setTasks(tasks);
-      alert('Error deleting task. Please try again.');
+      console.error("❌ An unexpected error occurred while deleting task:", error);
+      setTasks(originalTasks); // Rollback
+      alert('An error occurred while deleting the task.');
     }
   };
 
