@@ -71,13 +71,13 @@ const BoardCard = ({ name, color, createdAt, id }) => {
   return (
     <Grid item xs={12} sm={6} md={4} lg={3}>
       <Stack 
-        p={2} 
-        height="100%"
+        p={{ xs: 1.5, sm: 2 }} 
+        minHeight="120px"
         bgcolor="background.paper"
         borderRadius={1}
         boxShadow={1}
         sx={{ 
-          borderLeft: `5px solid ${boardColor}`,   // ✅ moved inside sx
+          borderLeft: `5px solid ${boardColor}`,
           cursor: 'pointer', 
           transition: 'transform 0.2s, box-shadow 0.2s',
           '&:hover': { 
@@ -97,6 +97,7 @@ const BoardCard = ({ name, color, createdAt, id }) => {
                 textOverflow: 'ellipsis',
                 overflow: 'hidden',
                 color: 'text.primary',
+                fontSize: { xs: '1rem', sm: '1.25rem' },
               }}
             >
               {boardName}

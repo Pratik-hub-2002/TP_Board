@@ -25,8 +25,8 @@ const CreateBoardModal = ({ closeModal }) => {
             const boardData = {
                 name: name.trim(),
                 color: color,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
                 createdBy: currentUser.uid,
                 members: [currentUser.uid],
                 tabs: {
@@ -53,42 +53,56 @@ const CreateBoardModal = ({ closeModal }) => {
     }
     
     return (
-        <Dialog open onClose={closeModal} fullWidth maxWidth="xs">
-            <Stack p={2}>
+        <Dialog 
+            open 
+            onClose={closeModal} 
+            fullWidth 
+            maxWidth="xs"
+            PaperProps={{
+                sx: {
+                    p: 2,                // padding inside dialog
+                    borderRadius: 3,     // rounded corners
+                    width: "100%",       // responsive width
+                    maxWidth: 400,       // limit width for big screens
+                    mx: "auto"           // center on mobile
+                }
+            }}
+        >
+            <Stack spacing={3}>
                 <ModalHeader title="Create Board" onClose={closeModal} />
-                <Stack my={5} spacing={3}>
-                    <TextField 
-                        label="Board Name" 
-                        value={name} 
-                        onChange={(e) => setName(e.target.value)}
-                        sx={{
-                            '& input': {
-                                caretColor: 'transparent'
-                            },
-                        }}
-                    />
-                    <Stack direction="row" spacing={1.5}>
-                        <Typography>Color:</Typography>
-                        <Stack direction="row" spacing={1}>
-                            {colors.map((clr, idx) => (
-                                <Box 
-                                    sx={{
-                                        cursor: "pointer",
-                                        border: color === idx ? "3px solid #383838" : "none",
-                                        outline: color === idx ? `2px solid ${clr}` : "none",
-                                    }}
-                                    onClick={() => setColor(idx)} 
-                                    key={clr} 
-                                    height={25} 
-                                    width={25} 
-                                    backgroundColor={clr} 
-                                    borderRadius="50%"
-                                />
-                            ))}
-                        </Stack>
+                <TextField 
+                    label="Board Name" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
+                />
+                <Stack direction="row" spacing={1.5}>
+                    <Typography>Color:</Typography>
+                    <Stack direction="row" spacing={1}>
+                        {colors.map((clr, idx) => (
+                            <Box 
+                                key={clr}
+                                onClick={() => setColor(idx)} 
+                                sx={{
+                                    cursor: "pointer",
+                                    border: color === idx ? "3px solid #383838" : "none",
+                                    outline: color === idx ? `2px solid ${clr}` : "none",
+                                }}
+                                height={25} 
+                                width={25} 
+                                backgroundColor={clr} 
+                                borderRadius="50%"
+                            />
+                        ))}
                     </Stack>
-                    <Button disabled={loading} onClick={handleCreate} size="large" variant="contained">Create</Button>
                 </Stack>
+                <Button 
+                    disabled={loading} 
+                    onClick={handleCreate} 
+                    size="large" 
+                    variant="contained"
+                >
+                    Create
+                </Button>
             </Stack>
         </Dialog>
     );
